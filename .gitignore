@@ -1,0 +1,29 @@
+# Emacs backup files
+*~
+\#*\#
+
+# Auto-save data
+auto-save-list/
+
+# Compiled/cache files
+*.elc
+eln-cache/
+
+# Installed packages
+elpa/
+
+# Tree-sitter downloaded grammars/modules
+tree-sitter/
+
+# Emacs state/history
+history
+places
+projects
+recentf
+
+# Other common Emacs-generated files
+tramp
+network-security.data
+.url/
+
+.#*

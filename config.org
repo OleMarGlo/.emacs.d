@@ -1,0 +1,450 @@
+#+title: Emacs Configuration
+#+property: header-args:emacs-lisp :tangle yes
+
+#+begin_src emacs-lisp
+;;; config.el --- Personal Emacs configuration -*- lexical-binding: t; -*-
+#+end_src
+
+This is my attempt for a working emacs configuration!
+
+I am mostly starting this journey to get away from so much AI in my code, as i have grow tirred of it.
+Additonally i just landed a job as a backend engieer where things are written in Clojure!
+Therefore i am making the switch to emacs as this is maybe the most used code editor
+
+I am still learning both Lisp and customizing this so bear with me!
+
+* Package Managment
+
+Every emacs enviroment (usually unless you write everything yourself) uses packages.
+Here are what i mainly use along with their priorities
+
+#+begin_src emacs-lisp
+
+(require 'package)
+
+(setq package-archives
+      '(("gnu"    . "https://elpa.gnu.org/packages/")
+        ("nongnu" . "https://elpa.nongnu.org/nongnu/")
+        ("melpa"  . "https://melpa.org/packages/"))
+
+      package-archive-priorities
+      '(("gnu"    . 30)
+        ("nongnu" . 20)
+        ("melpa"  . 10)))
+
+(require 'use-package)
+
+(setq use-package-always-ensure t)
+#+end_src
+
+* UI
+** General Stuff
+Some standard configuration to remove things like the scroll bars, and menu bars
+Additionally i prefer single yes/no prompts
+
+#+begin_src emacs-lisp
+(repeat-mode 1)
+
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+
+(setq inhibit-startup-message t
+      use-short-answers t
+      sentence-end-double-space nil)
+#+end_src
+** Themes
+
+#+begin_src emacs-lisp
+(use-package doom-themes
+  :custom
+  (doom-themes-enable-bold t)
+  (doom-themes-enable-italic t)
+  :config
+  (load-theme 'doom-challenger-deep t))
+#+end_src
+
+** Window Apperance
+
+Simple styling for the appearance of the windows
+
+#+begin_src emacs-lisp
+(setq window-divider-default-right-width 1
+      window-divider-default-bottom-width 1
+      window-divider-default-places t)
+
+(window-divider-mode 1)
+
+(setq-default left-margin-width 1
+              right-margin-width 1)
+#+end_src
+** Window Managment
+
+Because i use linux (i use Arch BTW) i cannot simply just NOT edit how the windows look!
+I am a fan of having many different windows up when i am coding.
+Therefore i have configured the windows to remind me of a tiling window manager!
+
+#+begin_src emacs-lisp
+(setq split-height-threshold nil
+      split-width-threshold 100)
+
+(setq display-buffer-base-action
+      '((display-buffer-reuse-window
+         display-buffer-pop-up-window)))
+#+end_src
+
+Some ease of mind keybinds allowing us to easily shrink and change windows
+
+Along with a keymap allowing us to repeat our keybinds
+
+~NBNB~ Do NOT forget to add a repeat mode otherwise the repeating keybinds wont work
+
+#+begin_src emacs-lisp
+(global-set-key (kbd "M-o") #'other-window)
+
+(global-set-key (kbd "C-c w v") #'split-window-right)
+(global-set-key (kbd "C-c w s") #'split-window-below)
+(global-set-key (kbd "C-c w d") #'delete-window)
+(global-set-key (kbd "C-c w o") #'delete-other-windows)
+
+(global-set-key (kbd "C-c w k") #'enlarge-window)
+(global-set-key (kbd "C-c w j") #'shrink-window)
+(global-set-key (kbd "C-c w l") #'enlarge-window-horizontally)
+(global-set-key (kbd "C-c w h") #'shrink-window-horizontally)
+(global-set-key (kbd "C-c w =") #'balance-windows)
+
+(defvar-keymap my/window-resize-repeat-map
+  :repeat t
+  "h" #'shrink-window-horizontally
+  "j" #'shrink-window
+  "k" #'enlarge-window
+  "l" #'enlarge-window-horizontally)
+#+end_src
+
+* Org
+
+This definetly has to grow, as i was getting pretty annoyed while writing this file
+
+#+begin_src emacs-lisp
+  (use-package org
+    :ensure nil
+    :custom
+    (org-hide-emphasis-markers t)
+    (org-pretty-entities t)
+    :hook
+    (org-mode . visual-line-mode))
+
+  (use-package org-modern
+    :ensure t
+    :custom
+    (org-modern-hide-stars 'leading)
+    :hook
+    (org-mode . org-modern-mode))
+
+  (use-package org-appear
+    :ensure t
+    :after org
+    :hook
+    (org-mode . org-appear-mode))
+
+  (custom-set-faces
+   '(org-level-1 ((t (:height 1.4 :weight bold))))
+   '(org-level-2 ((t (:height 1.25 :weight bold))))
+   '(org-level-3 ((t (:height 1.15 :weight bold)))))
+#+end_src
+
+* Completion
+Always writing the exact things are hard, therefore i have adopted some configurations that add some features
+
+
+** Minibuffer
+
+We will be configuring the search bar, move it away from the bottom.
+Add savehist in order to remember most of our choices.
+Orderless that splits our search query into chunks, allowing us for deeper searches.
+Marginalia adds some color gradings.
+
+#+begin_src emacs-lisp
+  (use-package vertico
+    
+    :custom
+    (vertico-count 48)
+    (vertico-resize t)
+    (vertico-cycle t)
+    :init
+    (vertico-mode))
+
+
+  (use-package mini-frame
+    :custom
+    (mini-frame-show-parameters
+     '((top . 40)
+       (width . 0.70)
+       (left . 0.5)
+       (internal-border-width . 12)
+       (child-frame-border-width . 1)))
+
+    (mini-frame-resize t)
+    (mini-frame-resize-min-height 1)
+
+    ;; Must leave enough room for Vertico's candidates.
+    (mini-frame-resize-max-height 50)
+
+    :init
+    (mini-frame-mode 1))
+
+  (use-package savehist
+    :init
+    (savehist-mode))
+
+
+  (use-package orderless
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-defaults nil)
+
+
+    (completion-category-overrides
+     '((file (styles partial-completion)))))
+
+  (use-package marginalia
+    :init
+    (marginalia-mode))
+#+end_src
+
+** In-buffer completion
+
+This section is mostly about getting completion popup while editing buffers.
+This is done uding the packages coruf and cape for both backwards and current editings
+
+#+begin_src emacs-lisp
+  (use-package corfu
+    :custom
+    (corfu-auto t)
+    (corfu-auto-delay 0.15)
+    (corfu-auto-prefix 2)
+    (corfu-cycle t)
+    (corfu-preselect 'prompt)
+    (corfu-on-exact-match nil)
+    :init
+    (global-corfu-mode))
+
+  (use-package cape
+    :init
+    (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+    (add-to-list 'completion-at-point-functions #'cape-file))
+#+end_src
+
+* Search and navigation
+Here we add some keybinds to navigate in day to day coding a lot simpler using consult!
+
+#+begin_src emacs-lisp
+  (use-package consult
+    :bind
+    (;; Buffers
+     ("C-x b" . consult-buffer)
+
+     ;; Search current buffer
+     ("C-s" . consult-line)
+
+     ;; Search project/files with ripgrep
+     ("M-s r" . consult-ripgrep)
+
+     ;; Navigation
+     ("M-g g" . consult-goto-line)
+     ("M-g i" . consult-imenu)
+     ("M-g o" . consult-outline)
+
+     ;; Yank history
+     ("M-y" . consult-yank-pop)))
+
+#+end_src
+* Contextual actions
+Performing actions on the current completion candidate
+
+#+begin_src emacs-lisp
+  (use-package embark
+    :bind
+    (("C-." . embark-act)
+     ("C-;" . embark-dwim)
+     ("C-h B" . embark-bindings)))
+
+  (use-package embark-consult
+    :hook
+    (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
+* Core editor behavior
+
+Some ease of mind keybinds, mostly for picking up speed and making day to day things easier.
+Mostly keeping the positon after moving between screens, pair paranthesis etc, and some undo behavior.
+#+begin_src emacs-lisp
+  (delete-selection-mode 1)
+
+  (electric-pair-mode 1)
+
+  (save-place-mode 1)
+
+  (recentf-mode 1)
+
+  (global-auto-revert-mode 1)
+
+  (winner-mode 1)
+
+  (use-package vundo
+    :bind
+    ("C-x u" . vundo))
+#+end_src
+
+* Help
+Emacs is hard, so why make it harder?
+Some keybinds that will help us to manouver the editor
+
+#+begin_src emacs-lisp
+  (use-package which-key
+    :custom
+    (which-key-idle-delay 0.7)
+    :init
+    (which-key-mode 1))
+
+  (use-package helpful
+    :bind
+    (("C-h f" . helpful-callable)
+     ("C-h v" . helpful-variable)
+     ("C-h k" . helpful-key)
+     ("C-h x" . helpful-command)))
+#+end_src
+
+* Version control
+I mainly just added this because i wanted to, idk
+
+#+begin_src emacs-lisp
+  (use-package magit
+    :bind
+    ("C-x g" . magit-status))
+#+end_src
+
+* Terminal
+Why leave emacs to do simple terminal tasks when you can just have it all in here?
+
+#+begin_src emacs-lisp
+  (use-package eat
+    :bind
+    ("C-c t" . eat))
+
+    (add-to-list
+   'display-buffer-alist
+   '("\\*eat\\*"
+     (display-buffer-in-side-window)
+     (side . bottom)
+     (window-height . 0.30)))
+#+end_src
+
+* Programming
+This is the fun part!
+Here is how we configure how programming will actually work so lets have a crack at it shall we?
+
+** General stuff
+Again some general stuff to better suite for coding
+#+begin_src emacs-lisp
+  (column-number-mode 1)
+
+    (add-hook 'prog-mode-hook #'display-line-numbers-mode)
+#+end_src
+
+** Projects
+
+This section doesnt have too much here right now.
+More will be added in the future as we continue to add 
+
+#+begin_src emacs-lisp
+  (use-package project
+    :ensure nil)
+#+end_src
+
+** Language Server Protocol
+
+I am using Eglot as a language server protocol, not too sure how much i will add here, we will see.
+
+#+begin_src emacs-lisp
+  (use-package eglot
+    :ensure nil
+    :commands eglot
+    :bind
+    (("C-c e r" . eglot-rename)
+     ("C-c e a" . eglot-code-actions)
+     ("C-c e f" . eglot-format)))
+#+end_src
+
+** Diagnostics
+
+We will use flymake for error messages.
+I have not tested this in practice yet, so it might change, but we will see
+
+#+begin_src emacs-lisp
+  (use-package flymake
+    :ensure nil
+    :bind
+    (("M-n" . flymake-goto-next-error)
+     ("M-p" . flymake-goto-prev-error)
+     ("C-c ! l" . consult-flymake)))
+#+end_src
+
+** Compilation
+
+For compiling we will use the package compile.
+Again i have not tested this in practice so i will def add more to this
+
+#+begin_src emacs-lisp
+  (use-package compile
+    :ensure nil
+    :custom
+    (compilation-scroll-output 'first-error)
+    :bind
+    (("C-c c" . compile)
+     ("C-c r" . recompile)))
+#+end_src
+
+** Tree-sitter
+
+Tree sitter to be able to see things a lot better
+
+#+begin_src emacs-lisp
+  (setq treesit-language-source-alist
+        '((python "https://github.com/tree-sitter/tree-sitter-python")
+          (go     "https://github.com/tree-sitter/tree-sitter-go")))
+
+  (when (treesit-available-p)
+    (dolist (language '(python go))
+      (unless (treesit-language-available-p language)
+        (condition-case err
+            (treesit-install-language-grammar language)
+          (error
+           (message "Could not install Tree-sitter grammar for %s: %s"
+                    language err))))))
+#+end_src
+
+* Languages
+Here are all the different language modes we want to use, i use Golang a lot, and i wish to learn Clojure.
+Now this will grow and shrink mainly based on my uni courses.
+
+** Go
+
+A lot of the code i write is in Go, along with my voulenteering work, therefore we have Go
+
+#+begin_src emacs-lisp
+  (use-package go-ts-mode
+    :ensure nil
+    :mode ("\\.go\\'" . go-ts-mode)
+    :hook
+    (go-ts-mode . eglot-ensure)
+  )
+#+end_src
+
+* Custom
+
+#+begin_src emacs-lisp
+(setq custom-file
+      (expand-file-name "custom.el" user-emacs-directory))
+
+(load custom-file 'noerror 'nomessage)
+#+end_src
