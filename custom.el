@@ -7,7 +7,7 @@
  '(package-selected-packages
    '(cape corfu doom-themes eat embark-consult helpful magit marginalia
 	  mini-frame orderless org-appear org-modern tree-sitter
-	  vertico-posframe vundo)))
+	  vertico-posframe vterm vundo)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

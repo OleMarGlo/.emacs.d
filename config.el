@@ -231,13 +231,16 @@
   :bind
   ("C-x g" . magit-status))
 
-(use-package eat
+(use-package vterm
   :bind
-  ("C-c t" . eat))
+  ("C-c t" . vterm)
+  :custom
+  (vterm-max-scrollback 10000)
+  (vterm-timer-delay 0.01))
 
-  (add-to-list
+(add-to-list
  'display-buffer-alist
- '("\\*eat\\*"
+ '("\\*vterm\\*"
    (display-buffer-in-side-window)
    (side . bottom)
    (window-height . 0.30)))
@@ -291,6 +294,63 @@
   :hook
   (go-ts-mode . eglot-ensure)
 )
+
+(when (eq system-type 'darwin)
+  (setq mac-right-option-modifier 'none
+        ns-right-option-modifier 'none))
+
+(use-package clojure-mode)
+
+(use-package cider
+  :hook
+  (clojure-mode . cider-mode)
+  :custom
+  (cider-repl-display-help-banner nil)
+  (cider-save-file-on-load t)
+  :bind
+  (:map cider-mode-map
+        ("C-c C-k" . cider-load-buffer)
+        ("C-c C-e" . cider-eval-last-sexp)
+        ("C-c C-c" . cider-eval-defun-at-point)
+        ("C-c C-b" . cider-eval-buffer)
+        ("C-c C-z" . cider-switch-to-repl-buffer)
+        ("C-c M-n" . cider-repl-set-ns)
+        ("C-c C-d d" . cider-doc)
+        ("C-c M-t v" . cider-toggle-trace-var)))
+
+(use-package smartparens
+  :hook
+  ((clojure-mode
+    cider-repl-mode
+    emacs-lisp-mode
+    lisp-mode) . smartparens-strict-mode)
+  :config
+  (require 'smartparens-config)
+  :bind
+  (:map smartparens-mode-map
+        ;; Paredit-style slurp/barf. Avoids C-<arrow> which macOS
+        ;; grabs for Mission Control / space switching.
+        ("C-)" . sp-forward-slurp-sexp)
+        ("C-}" . sp-forward-barf-sexp)
+        ("C-(" . sp-backward-slurp-sexp)
+        ("C-{" . sp-backward-barf-sexp)
+        ("M-s"         . sp-splice-sexp)
+        ("M-r"         . sp-raise-sexp)
+        ("M-S"         . sp-split-sexp)
+        ("M-J"         . sp-join-sexp)
+        ("C-M-f"       . sp-forward-sexp)
+        ("C-M-b"       . sp-backward-sexp)
+        ("C-M-u"       . sp-backward-up-sexp)
+        ("C-M-d"       . sp-down-sexp)
+        ("C-M-k"       . sp-kill-sexp)
+        ("C-M-w"       . sp-copy-sexp)
+        ("C-M-t"       . sp-transpose-sexp)))
+
+(dolist (hook '(clojure-mode-hook
+                cider-repl-mode-hook
+                emacs-lisp-mode-hook
+                lisp-mode-hook))
+  (add-hook hook (lambda () (electric-pair-local-mode -1))))
 
 (setq custom-file
       (expand-file-name "custom.el" user-emacs-directory))
