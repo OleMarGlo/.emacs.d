@@ -69,13 +69,25 @@
   "k" #'enlarge-window
   "l" #'enlarge-window-horizontally)
 
+(defun my/org-return-preserve-indent ()
+  "Insert newline at same indentation level as current line."
+  (interactive)
+  (let ((col (current-indentation)))
+    (newline)
+    (indent-to col)))
+
 (use-package org
   :ensure nil
   :custom
   (org-hide-emphasis-markers t)
   (org-pretty-entities t)
+  (org-adapt-indentation nil)
+  :bind
+  (:map org-mode-map
+        ("RET" . my/org-return-preserve-indent))
   :hook
-  (org-mode . visual-line-mode))
+  (org-mode . visual-line-mode)
+  (org-mode . (lambda () (electric-indent-local-mode -1))))
 
 (use-package org-modern
   :ensure t
