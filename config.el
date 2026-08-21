@@ -69,6 +69,14 @@
   "k" #'enlarge-window
   "l" #'enlarge-window-horizontally)
 
+(defun my/move-buffer-to-bottom-side ()
+  (interactive)
+  (let ((buf (current-buffer)))
+    (delete-window)
+    (display-buffer-in-side-window buf '((side . bottom) (window-height . 0.3)))))
+
+(global-set-key (kbd "C-c w B") #'my/move-buffer-to-bottom-side)
+
 (defun my/org-return-preserve-indent ()
   "Insert newline at same indentation level as current line."
   (interactive)
@@ -309,14 +317,7 @@
   (cider-save-file-on-load t)
   :bind
   (:map cider-mode-map
-        ("C-c C-k" . cider-load-buffer)
-        ("C-c C-e" . cider-eval-last-sexp)
-        ("C-c C-c" . cider-eval-defun-at-point)
-        ("C-c C-b" . cider-eval-buffer)
-        ("C-c C-z" . cider-switch-to-repl-buffer)
-        ("C-c M-n" . cider-repl-set-ns)
-        ("C-c C-d d" . cider-doc)
-        ("C-c M-t v" . cider-toggle-trace-var)))
+        ("C-c C-c" . cider-eval-defun-at-point)))
 
 (use-package smartparens
   :hook
