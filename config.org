@@ -56,12 +56,14 @@ Additionally i prefer single yes/no prompts
 ** Themes
 
 #+begin_src emacs-lisp
-(use-package doom-themes
-  :custom
-  (doom-themes-enable-bold t)
-  (doom-themes-enable-italic t)
-  :config
-  (load-theme 'doom-challenger-deep t))
+  (use-package doom-themes
+    :custom
+    (doom-themes-enable-bold t)
+    (doom-themes-enable-italic t)
+    :config
+    (setcdr (assoc 'gnus-group-news-low-empty doom-themes-base-faces)
+            '(:inherit 'gnus-group-mail-1-empty :weight 'normal))
+    (load-theme 'doom-challenger-deep t))
 #+end_src
 
 ** Window Apperance
@@ -462,12 +464,23 @@ Now this will grow and shrink mainly based on my uni courses.
 A lot of the code i write is in Go, along with my voulenteering work, therefore we have Go
 
 #+begin_src emacs-lisp
+  (defun my/go-setup ()
+    (eglot-ensure)
+
+    ;; Organize imports before saving.
+    (add-hook 'before-save-hook
+              (lambda ()
+                (call-interactively #'eglot-code-action-organize-imports))
+              nil t)
+
+    ;; Format after imports have been organized.
+    (add-hook 'before-save-hook #'eglot-format-buffer nil t))
+
   (use-package go-ts-mode
     :ensure nil
     :mode ("\\.go\\'" . go-ts-mode)
     :hook
-    (go-ts-mode . eglot-ensure)
-  )
+    (go-ts-mode . my/go-setup))
 #+end_src
 
 ** Clojure / CIDER
@@ -486,7 +499,9 @@ right one type brackets.
 ~clojure-mode~ gives editing support, ~cider~ gives the REPL and evaluation.
 
 #+begin_src emacs-lisp
-  (use-package clojure-mode)
+  (use-package clojure-mode
+    :hook
+    (clojure-mode . eglot-ensure))
 
   (use-package cider
     :hook
@@ -544,11 +559,63 @@ modes so smartparens owns paren handling.
     (add-hook hook (lambda () (electric-pair-local-mode -1))))
 #+end_src
 
+* Backup files
+
+I got really annoyed by all the god dang backup files that was made, so i just removed them.
+Alternatively you can move them to a different place, but oh well
+
+#+begin_src emacs-lisp
+  (defvar my/emacs-state-directory
+    (expand-file-name "~/.local/state/emacs/"))
+
+  (defvar my/emacs-backup-directory
+    (expand-file-name "backups/" my/emacs-state-directory))
+
+  (defvar my/emacs-autosave-directory
+    (expand-file-name "autosaves/" my/emacs-state-directory))
+
+  (defvar my/emacs-lock-directory
+    (expand-file-name "locks/" my/emacs-state-directory))
+
+  (dolist (dir (list my/emacs-backup-directory
+                     my/emacs-autosave-directory
+                     my/emacs-lock-directory))
+    (make-directory dir t))
+
+  (setq backup-directory-alist
+        `(("." . ,my/emacs-backup-directory)))
+
+  (setq auto-save-file-name-transforms
+        `((".*" ,my/emacs-autosave-directory t)))
+
+  (setq lock-file-name-transforms
+        `((".*" ,my/emacs-lock-directory t)))
+#+end_src
+
+* Transient files
+Just mvoing these to another place, same as with the backup files, mainly just because i accidentally commited them once
+
+#+begin_src emacs-lisp
+  (defvar my/emacs-transient-directory
+    (expand-file-name "transient/" my/emacs-state-directory))
+
+  (make-directory my/emacs-transient-directory t)
+
+  (setq transient-history-file
+        (expand-file-name "history.el" my/emacs-transient-directory))
+
+  (setq transient-values-file
+        (expand-file-name "values.el" my/emacs-transient-directory))
+
+  (setq transient-levels-file
+        (expand-file-name "levels.el" my/emacs-transient-directory))
+#+end_src
+
 * Custom
 
 #+begin_src emacs-lisp
-(setq custom-file
-      (expand-file-name "custom.el" user-emacs-directory))
-
-(load custom-file 'noerror 'nomessage)
+  (setq custom-file
+        (expand-file-name "custom.el" user-emacs-directory))
+  
+  (load custom-file 'noerror 'nomessage)
 #+end_src

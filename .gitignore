@@ -27,3 +27,8 @@ network-security.data
 .url/
 
 .#*
+
+aux/*
+
+
+transient/*
