@@ -559,6 +559,19 @@ modes so smartparens owns paren handling.
     (add-hook hook (lambda () (electric-pair-local-mode -1))))
 #+end_src
 
+** Auto Save
+
+I tried for a while to NOT have this feautre but my god i got annoyed by not having auto save when i eval things etc
+
+#+begin_src emacs-lisp
+  (defun clojure-auto-save-setup ()
+
+    (setq-local auto-save-visited-interval 5)
+    (auto-save-visited-mode 1))
+    
+  (add-hook 'clojure-mode-hook #'clojure-auto-save-setup)
+#+end_src
+
 * Backup files
 
 I got really annoyed by all the god dang backup files that was made, so i just removed them.

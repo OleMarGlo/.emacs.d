@@ -31,6 +31,8 @@
   (doom-themes-enable-bold t)
   (doom-themes-enable-italic t)
   :config
+  (setcdr (assoc 'gnus-group-news-low-empty doom-themes-base-faces)
+          '(:inherit 'gnus-group-mail-1-empty :weight 'normal))
   (load-theme 'doom-challenger-deep t))
 
 (setq window-divider-default-right-width 1
@@ -296,18 +298,31 @@
          (message "Could not install Tree-sitter grammar for %s: %s"
                   language err))))))
 
+(defun my/go-setup ()
+  (eglot-ensure)
+
+  ;; Organize imports before saving.
+  (add-hook 'before-save-hook
+            (lambda ()
+              (call-interactively #'eglot-code-action-organize-imports))
+            nil t)
+
+  ;; Format after imports have been organized.
+  (add-hook 'before-save-hook #'eglot-format-buffer nil t))
+
 (use-package go-ts-mode
   :ensure nil
   :mode ("\\.go\\'" . go-ts-mode)
   :hook
-  (go-ts-mode . eglot-ensure)
-)
+  (go-ts-mode . my/go-setup))
 
 (when (eq system-type 'darwin)
   (setq mac-right-option-modifier 'none
         ns-right-option-modifier 'none))
 
-(use-package clojure-mode)
+(use-package clojure-mode
+  :hook
+  (clojure-mode . eglot-ensure))
 
 (use-package cider
   :hook
@@ -352,6 +367,53 @@
                 emacs-lisp-mode-hook
                 lisp-mode-hook))
   (add-hook hook (lambda () (electric-pair-local-mode -1))))
+
+(defun clojure-auto-save-setup ()
+
+  (setq-local auto-save-visited-interval 5)
+  (auto-save-visited-mode 1))
+  
+(add-hook 'clojure-mode-hook #'clojure-auto-save-setup)
+
+(defvar my/emacs-state-directory
+  (expand-file-name "~/.local/state/emacs/"))
+
+(defvar my/emacs-backup-directory
+  (expand-file-name "backups/" my/emacs-state-directory))
+
+(defvar my/emacs-autosave-directory
+  (expand-file-name "autosaves/" my/emacs-state-directory))
+
+(defvar my/emacs-lock-directory
+  (expand-file-name "locks/" my/emacs-state-directory))
+
+(dolist (dir (list my/emacs-backup-directory
+                   my/emacs-autosave-directory
+                   my/emacs-lock-directory))
+  (make-directory dir t))
+
+(setq backup-directory-alist
+      `(("." . ,my/emacs-backup-directory)))
+
+(setq auto-save-file-name-transforms
+      `((".*" ,my/emacs-autosave-directory t)))
+
+(setq lock-file-name-transforms
+      `((".*" ,my/emacs-lock-directory t)))
+
+(defvar my/emacs-transient-directory
+  (expand-file-name "transient/" my/emacs-state-directory))
+
+(make-directory my/emacs-transient-directory t)
+
+(setq transient-history-file
+      (expand-file-name "history.el" my/emacs-transient-directory))
+
+(setq transient-values-file
+      (expand-file-name "values.el" my/emacs-transient-directory))
+
+(setq transient-levels-file
+      (expand-file-name "levels.el" my/emacs-transient-directory))
 
 (setq custom-file
       (expand-file-name "custom.el" user-emacs-directory))
