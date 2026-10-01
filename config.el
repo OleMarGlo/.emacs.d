@@ -298,6 +298,15 @@
          (message "Could not install Tree-sitter grammar for %s: %s"
                   language err))))))
 
+(use-package yaml-mode
+  :ensure t
+  :mode ("\\.yml\\'" "\\.yaml\\'")
+  :hook (yaml-mode . eglot-ensure))
+  
+(add-hook 'yaml-mode-hook
+        '(lambda ()
+           (define-key yaml-mode-map (kbd "RET") 'newline-and-indent)))
+
 (defun my/go-setup ()
   (eglot-ensure)
 
@@ -368,12 +377,13 @@
                 lisp-mode-hook))
   (add-hook hook (lambda () (electric-pair-local-mode -1))))
 
-(defun clojure-auto-save-setup ()
+(defun auto-save-setup ()
 
   (setq-local auto-save-visited-interval 5)
   (auto-save-visited-mode 1))
   
-(add-hook 'clojure-mode-hook #'clojure-auto-save-setup)
+(add-hook 'clojure-mode-hook #'auto-save-setup)
+(add-hook 'yaml-mode-hook #'auto-save-setup)
 
 (defvar my/emacs-state-directory
   (expand-file-name "~/.local/state/emacs/"))

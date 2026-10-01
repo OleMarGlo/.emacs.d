@@ -459,6 +459,19 @@ Tree sitter to be able to see things a lot better
 Here are all the different language modes we want to use, i use Golang a lot, and i wish to learn Clojure.
 Now this will grow and shrink mainly based on my uni courses.
 
+** YML
+
+#+begin_src emacs-lisp
+  (use-package yaml-mode
+    :ensure t
+    :mode ("\\.yml\\'" "\\.yaml\\'")
+    :hook (yaml-mode . eglot-ensure))
+    
+  (add-hook 'yaml-mode-hook
+          '(lambda ()
+             (define-key yaml-mode-map (kbd "RET") 'newline-and-indent)))
+#+end_src
+
 ** Go
 
 A lot of the code i write is in Go, along with my voulenteering work, therefore we have Go
@@ -564,12 +577,13 @@ modes so smartparens owns paren handling.
 I tried for a while to NOT have this feautre but my god i got annoyed by not having auto save when i eval things etc
 
 #+begin_src emacs-lisp
-  (defun clojure-auto-save-setup ()
+  (defun auto-save-setup ()
 
     (setq-local auto-save-visited-interval 5)
     (auto-save-visited-mode 1))
     
-  (add-hook 'clojure-mode-hook #'clojure-auto-save-setup)
+  (add-hook 'clojure-mode-hook #'auto-save-setup)
+  (add-hook 'yaml-mode-hook #'auto-save-setup)
 #+end_src
 
 * Backup files
