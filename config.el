@@ -224,6 +224,11 @@
   :bind
   ("C-x u" . vundo))
 
+;; Lets Claude Code (emacsclient) inspect/drive this Emacs session.
+(require 'server)
+(unless (server-running-p)
+  (server-start))
+
 (use-package which-key
   :custom
   (which-key-idle-delay 0.7)
@@ -265,6 +270,8 @@
 (use-package eglot
   :ensure nil
   :commands eglot
+  :custom
+  (eglot-connect-timeout 180)
   :bind
   (("C-c e r" . eglot-rename)
    ("C-c e a" . eglot-code-actions)

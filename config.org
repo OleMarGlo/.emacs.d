@@ -318,6 +318,11 @@ Mostly keeping the positon after moving between screens, pair paranthesis etc, a
   (use-package vundo
     :bind
     ("C-x u" . vundo))
+
+  ;; Lets Claude Code (emacsclient) inspect/drive this Emacs session.
+  (require 'server)
+  (unless (server-running-p)
+    (server-start))
 #+end_src
 
 * Help
@@ -397,10 +402,17 @@ More will be added in the future as we continue to add
 
 I am using Eglot as a language server protocol, not too sure how much i will add here, we will see.
 
+clojure-lsp needs to index the whole classpath before it answers the
+LSP ~initialize~ request, which on this monorepo takes well over
+Eglot's 30s default ~eglot-connect-timeout~ — Eglot was killing the
+server mid-index every time.
+
 #+begin_src emacs-lisp
   (use-package eglot
     :ensure nil
     :commands eglot
+    :custom
+    (eglot-connect-timeout 180)
     :bind
     (("C-c e r" . eglot-rename)
      ("C-c e a" . eglot-code-actions)
